@@ -1,0 +1,1 @@
+require 'globalize_bridge'

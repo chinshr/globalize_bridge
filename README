@@ -1,0 +1,107 @@
+GlobalizeBridge
+===============
+
+This plugin helps to ease the migration of existing Globalize 1 applications to the built in
+I18n framework without major code changes. Existing localization helpers and extensions are 
+utilized to make the migration as smooth ride.
+
+The plugin builds on top of the Globalize 2 and I18n Backend Database plugins, which need to be installed.
+
+Additionally, the following features were added:
+
+1. Backend chaining for database backend
+
+    # e.g.
+    I18n.backend = Globalize::Backend::Chain.new(Globalize::Backend::Static, I18n::Backend::Database)
+
+2. Fallback locales for static and database backends
+
+    # e.g. 
+    I18n.fallbacks[:"de-DE"] = [:"de-DE", :de, :en, :root]
+    I18n.locale = :"de-DE"
+    I18n.t :hello -> lookup in de-DE.yml, de.yml, en.yml then in database
+
+
+3. Improved backend database caching setup
+
+    I18n.cache_store = ActiveSupport::Cache.lookup_store(:memory_store)
+
+
+4. Template support and fallbacks
+
+    # e.g.
+    I18n.locale = :de
+    render :partial => "post"  ->  looks in views/de/post.html.erb or views/post.de.html.erb
+
+
+5. Model translations, keeping translation inside the table, instead of an associated translation table
+
+    # e.g.
+    class Post < ActiveRecord::Base
+      self.keep_translations_in_model = true
+      translates :title, :base_as_default => true
+    end
+ 
+6. Human readable raw key support with scopes yml files and database
+
+    # en.yml
+    en:
+      foo."bar": "check out the bar"
+
+    I18n.t "bar", :scope => "foo"   -> "check out the bar"
+ 
+7. Fast locale switching:
+
+    # e.g. 
+    I18n.locale = :en
+    I18n.switch_locale :"de-DE" do
+      # here we are German
+    end
+    # here back in English
+
+
+Migration Steps
+---------------
+
+You can generally follow these migration steps, the detailed steps depend on your app.
+
+1. Create a new database or use existing (run migrations)
+
+2. Populate the locales table with default locales
+
+    rake i18n:populate:default_locales
+    
+3. Export globalize translations
+
+    rake globalize:export
+    
+4. Import into Backend Datbase
+
+    rake globalize:import
+
+
+
+Installation Requirements
+-------------------------
+
+1. Install rails >=2.3.4
+
+2. Install Globalize2
+http://github.com/joshmh/globalize2/tree/v0.1.1
+
+3. Install I18n Backend Database
+http://github.com/dylanz/i18n_backend_database
+by ELC Technologies
+
+4. Configure plugin loading in config/environment.rb
+
+    config.plugins = [:i18n_backend_database, :globalize2, :globalize_bridge, :all]
+
+
+
+Acknowledgements
+----------------
+
+Thanks to ELC Technology and Josh for their great plugins and inspiration and many others.
+
+Copyright (c) 2010 Juergen Fesslmeier, released under the MIT license
